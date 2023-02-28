@@ -5,8 +5,13 @@ const server = express();
 const data = require('./data.json');
 const axios = require('axios');
 require('dotenv').config();
+const pg= require('pg');
+
 server.use(cors());
+server.use(express.json());
+
 const PORT = 3000;
+const client=new pg.Client(process.env.DATABASE_URL);
 function Movielibrary(id,title,release_date,summary,poster_path, overview) {
      this.id=id,
     this.title = title;
@@ -22,12 +27,14 @@ server.get('/', (req, res) => {
 server.get('/favorite', (req, res) => {
     res.status(200).send("Welcome to Fvourite Pge)")
 })
+
+server.get('/trending',moviesHandler)
+server.get('/search',searchHandler)
+server.post('/addMovie',addmoviesHandler)
+server.get('/getMovies',getMoviesHandler)
 server.get('*', (req, res) => {
     res.status(500).send("Sorry. something went wrong");
 })
-server.get('/trending',moviesHandler)
-server.get('/search',searchHandler)
-
 const APIKey = process.env.APIKey;
 
 function moviesHandler(req, res) {
@@ -54,8 +61,39 @@ axios.get(url)
     console.log("axios result");
 })
 }
+function getMoviesHandler(req,res)
+{
+    //get all data from DB
+    const sql = `SELECT * FROM favmovies;`
+    client.query(sql)
+    .then((data)=>{
+        res.send(data.rows);
+    })
+    .catch((err)=>{
+        errorHandler(err,req,res);
+    })
+}
+function addmoviesHandler(req,res)
+{
+    const movie = req.body; 
+    console.log(movie);
+    const sql = `INSERT INTO favmovies (title,summary) VALUES ($1,$2) RETURNING *;`
+    const values = [movie.title, movie.summary];
+    console.log(sql);
 
+    client.query(sql,values)
+    .then((data) => {
+        res.send("your data was added !");
+    })
+        .catch(error => {
+            // console.log(error);
+            errorHandler(error, req, res);
+        });
+}
+client.connect()
+.then(()=>{
 server.listen(PORT, () => {
-    console.log(`listening on port ${PORT} IM ready`)
+    console.log(`listening on port ${PORT} IM ready`);
 
+});
 })
