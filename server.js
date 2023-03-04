@@ -32,12 +32,17 @@ server.get('/trending',moviesHandler)
 server.get('/search',searchHandler)
 server.post('/addMovie',addmoviesHandler)
 server.get('/getMovies',getMoviesHandler)
+// server.put('/getMovies/:id',updateMovie)
+server.put('/getMovies/:id',updateMovies)
+server.delete('/getMovies/:id',deleteMovies)
+server.get('/getMovies/:id',geteMovies)
 server.get('*', (req, res) => {
     res.status(500).send("Sorry. something went wrong");
 })
-const APIKey = process.env.APIKey;
+server.use(errorHandler); //use middleware function
 
 function moviesHandler(req, res) {
+    const APIKey = process.env.APIKey;
 const url = `https://api.themoviedb.org/3/trending/all/week?api_key=${APIKey}&language=en-US`;
 axios.get(url)
 .then((result) => {
@@ -89,6 +94,56 @@ function addmoviesHandler(req,res)
             // console.log(error);
             errorHandler(error, req, res);
         });
+ //updating movies using path parameters(id)       
+}
+function updateMovies(req,res){
+    const id = req.params.id;
+    console.log(id);
+    console.log(req.body);
+    const sql = `UPDATE favmovies SET title=$1, summary=$2 WHERE id=${id} RETURNING *`;
+    const values = [req.body.title,req.body.summary];
+    client.query(sql,values)
+    .then((data)=>{
+        res.status(200).send(data.rows);
+    })
+    .catch((err)=>{
+        errorHandler(err,req,res);
+    })
+}
+//deleting movies using id
+function deleteMovies(req,res){
+    const id = req.params.id;
+    const sql = `DELETE FROM favmovies WHERE id=${id}`;
+    client.query(sql)
+    .then((data)=>{
+        res.status(200).send(data.rows);
+    })
+    .catch((err)=>{
+        errorHandler(err,req,res);
+    })
+
+}
+// getting movies usig id
+function geteMovies(req,res)
+{
+    const id = req.params.id; 
+    const sql = `SELECT * FROM favmovies WHERE id=${id}`;
+    // const values = [req.body.title,req.body.summary]; must be in header
+    client.query(sql)
+    .then((data) => {
+        res.send(data.rows);
+    })
+        .catch(error => {
+            // console.log(error);
+            errorHandler(error, req, res);
+        });
+}
+function errorHandler(erorr, req, res) {
+    const err = {
+        status: 500,
+        massage: erorr
+    }
+    res.status(500).send(err);
 }
 client.connect()
 .then(()=>{
