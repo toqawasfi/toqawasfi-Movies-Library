@@ -10,7 +10,7 @@ const pg= require('pg');
 server.use(cors());
 server.use(express.json());
 
-const PORT = 3000;
+const PORT = process .env.PORT;
 const client=new pg.Client(process.env.DATABASE_URL);
 function Movielibrary(id,title,release_date,summary,poster_path, overview) {
      this.id=id,
