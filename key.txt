@@ -1,2 +1,3 @@
 d176a77b236fc0804df77de9b3ed2351
 DATABASE_URL=postgersql://localhost:5432/mymovies
+PORT=3000
