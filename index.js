@@ -36,9 +36,8 @@ server.get('/getMovies',getMoviesHandler)
 server.put('/getMovies/:id',updateMovies)
 server.delete('/getMovies/:id',deleteMovies)
 server.get('/getMovies/:id',geteMovies)
-server.get('*', (req, res) => {
-    res.status(500).send("Sorry. something went wrong");
-})
+server.get('*', notFoundHandler)
+
 server.use(errorHandler); //use middleware function
 
 function moviesHandler(req, res) {
@@ -137,6 +136,9 @@ function geteMovies(req,res)
             // console.log(error);
             errorHandler(error, req, res);
         });
+}
+function notFoundHandler(req, res) {
+    res.status(404).send("Sorry. something went wrong");
 }
 function errorHandler(erorr, req, res) {
     const err = {
