@@ -9,9 +9,9 @@ const pg= require('pg');
 
 server.use(cors());
 server.use(express.json());
-
 const PORT = process .env.PORT || 3000;
 const client=new pg.Client(process.env.DATABASE_URL);
+
 function Movielibrary(id,title,release_date,summary,poster_path, overview) {
      this.id=id,
     this.title = title;
@@ -40,25 +40,34 @@ server.get('*', notFoundHandler)
 
 server.use(errorHandler); //use middleware function
 
-function moviesHandler(req, res) {
-    const APIKey = process.env.APIKey;
-const url = `https://api.themoviedb.org/3/trending/all/week?api_key=${APIKey}&language=en-US`;
-axios.get(url)
-.then((result) => {
-    //code depends on axios result
-    console.log("axios result");
+ function moviesHandler(req, res) {
+    try{
+const APIKey = process.env.APIKey;
+const url =`https://api.themoviedb.org/3/trending/all/week?api_key=${APIKey}&language=en-US`
+ axios.get(url)//send req to API
+// console.log(axres.data); //always will put result inside of data var
+// res.send(axres.data.results);
+.then((axres)=>{
+      //code depends on axios result
+      let mapResult = axres.data.results.map((item) => {
+        let movie = new Movielibrary(item.id, item.title, item.release_date, item.summary,item.poster_path,item.overview);
+        return movie;
 })
 
-    let mapResult = result.data.results.map((item) => {
-        let movie = new Movielibrary(item.id, item.title, item.release_date, item.summary,poster_path,overview);
-        return movie;
-    })
-    res.send(mapResult);
-    console.log("hi");
+res.send(mapResult);
+})
+.catch((err) => {
+    console.log("sorry", err);
+    res.status(500).send(err);
+})
+ }
+ catch (error) {
+    errorHandler(error,req,res);
+}
 }
 function searchHandler(req,res)
 {
-const url1=`https://api.themoviedb.org/3/search/movie?api_key=${APIKey}&language=en-US&query=The&page=2`;
+const url=`https://api.themoviedb.org/3/search/movie?api_key=${APIKey}&language=en-US&query=The&page=2`;
 axios.get(url)
 .then((result) => {
     //code depends on axios result
@@ -76,6 +85,7 @@ function getMoviesHandler(req,res)
     .catch((err)=>{
         errorHandler(err,req,res);
     })
+    
 }
 function addmoviesHandler(req,res)
 {
