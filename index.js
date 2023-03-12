@@ -67,12 +67,26 @@ res.send(mapResult);
 }
 function searchHandler(req,res)
 {
-const url=`https://api.themoviedb.org/3/search/movie?api_key=${APIKey}&language=en-US&query=The&page=2`;
+    try{
+        const APIKey = process.env.APIKey;
+const url=`https://api.themoviedb.org/3/search/movie?api_key=${APIKey}&language=en-US&query=The&page=2`
 axios.get(url)
 .then((result) => {
     //code depends on axios result
     console.log("axios result");
+    let searchResult = result.data.results;
+    console.log()
+    res.send(searchResult);
 })
+.catch((err) => {
+    console.log("sorry", err);
+    res.status(500).send(err);
+})
+ }
+ catch (error) {
+    errorHandler(error,req,res);
+}
+
 }
 function getMoviesHandler(req,res)
 {
